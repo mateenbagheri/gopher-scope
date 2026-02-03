@@ -1,0 +1,15 @@
+services:
+  app:
+    build:
+      context: .
+      dockerfile: Dockerfile
+    ports: 
+      - "8080:1323"
+    volumes:
+      - ./:/app
+      - go-mod-cache:/go/pkg/mod
+    environment:
+      GO_ENV: development
+
+volumes:
+  go-mod-cache:
