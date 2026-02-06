@@ -1,13 +1,13 @@
 .PHONY: build up down logs clean
 
 # Development
-dev-build:
+build:
 	docker compose -f docker-compose.yml build
 
-dev-up:
+up:
 	docker compose -f docker-compose.yml up
 
-dev-down:
+down:
 	docker compose -f docker-compose.yml down
 
 # Common
