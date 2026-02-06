@@ -10,6 +10,15 @@ services:
       - go-mod-cache:/go/pkg/mod
     environment:
       GO_ENV: development
+  prometheus:
+    image: prom/prometheus:v3.9.1
+    volumes:
+      - prometheus_data:/prometheus
+      - ./prometheus.yml:/etc/prometheus/prometheus.yml
+    ports:
+      - 9090:9090
+    restart: unless-stopped
 
 volumes:
   go-mod-cache:
+  prometheus_data:
