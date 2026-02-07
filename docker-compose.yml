@@ -18,7 +18,22 @@ services:
     ports:
       - 9090:9090
     restart: unless-stopped
+  grafana:
+    image: grafana/grafana:latest
+    depends_on:
+      - prometheus
+    ports:
+      - "3000:3000"
+    volumes:
+      - grafana_data:/var/lib/grafana
+      - ./grafana/provisioning:/etc/grafana/provisioning
+    environment:
+      - GF_SECURITY_ADMIN_PASSWORD=admin
+      - GF_USERS_ALLOW_SIGN_UP=false
+    restart: unless-stopped
 
 volumes:
   go-mod-cache:
   prometheus_data:
+  grafana_data:
+
