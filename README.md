@@ -22,6 +22,14 @@ The goal of this project is to explore:
 - Grafana
 - Docker / Docker Compose
 
+## Disclamer
+
+At refactor stage of this repository, I have heavily used LLMs to do most
+of the job for me since this was not the intention of the project.
+
+I am doing an small refactor mainly to be able to add more stuff later on
+and try out new things.
+
 ## Usage
 
 Clone the repository and start the stack:
@@ -32,3 +40,4 @@ docker compose up --build
 
 There is also a Makefile that can be of good use.
 Peace!
+
