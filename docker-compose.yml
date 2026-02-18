@@ -4,7 +4,8 @@ services:
       context: .
       dockerfile: Dockerfile
     ports: 
-      - "8080:1323"
+      - "8080:8080"
+      - "2345:2345"
     volumes:
       - ./:/app
       - go-mod-cache:/go/pkg/mod
