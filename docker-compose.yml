@@ -4,29 +4,20 @@ services:
       context: .
       dockerfile: Dockerfile
     ports: 
-      - "8080:8080"
-      - "40000:40000"
+      - "8080:1323"
     volumes:
       - ./:/app
       - go-mod-cache:/go/pkg/mod
     environment:
       GO_ENV: development
-    cap_add:
-      - SYS_PTRACE
-    security_opt:
-      - seccomp:unconfined
-
   prometheus:
     image: prom/prometheus:v3.9.1
     volumes:
       - prometheus_data:/prometheus
       - ./prometheus.yml:/etc/prometheus/prometheus.yml
     ports:
-      - "9090:9090"
+      - 9090:9090
     restart: unless-stopped
-    networks:
-      - monitoring
-
   grafana:
     image: grafana/grafana:latest
     depends_on:
@@ -37,14 +28,9 @@ services:
       - grafana_data:/var/lib/grafana
       - ./grafana/provisioning:/etc/grafana/provisioning
     environment:
-      GF_SECURITY_ADMIN_PASSWORD: admin
-      GF_USERS_ALLOW_SIGN_UP: "false"
+      - GF_SECURITY_ADMIN_PASSWORD=admin
+      - GF_USERS_ALLOW_SIGN_UP=false
     restart: unless-stopped
-    networks:
-      - monitoring
-
-networks:
-  monitoring:
 
 volumes:
   go-mod-cache:

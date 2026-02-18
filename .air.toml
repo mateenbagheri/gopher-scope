@@ -2,10 +2,8 @@ root = "."
 tmp_dir = "tmp"
 
 [build]
-  cmd = "go build -gcflags=all='-N -l' -o ./tmp/main ./cmd"
-  bin = "dlv"
-  full_bin = "dlv exec ./tmp/main --headless --listen=:40000 --api-version=2 --accept-multiclient"
-
+  cmd = "go build -o ./tmp/main ./cmd"
+  bin = "tmp/main"
   include_ext = ["go", "tpl", "tmpl", "html"]
   exclude_dir = ["assets", "tmp", "vendor", "testdata"]
   delay = 1000
@@ -19,4 +17,3 @@ tmp_dir = "tmp"
   watcher = "cyan"
   build = "yellow"
   runner = "green"
-
