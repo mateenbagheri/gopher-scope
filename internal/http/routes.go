@@ -11,5 +11,6 @@ func RegisterRoutes(e *echo.Echo) {
 
 	e.GET("/", h.Root)
 	e.GET("/metrics", h.Metrics)
+	e.GET("/unreliable", h.UnreliableEndpoint)
+	e.GET("/slow", h.SlowEndpoint)
 }
-
