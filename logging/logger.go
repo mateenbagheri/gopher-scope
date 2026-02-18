@@ -8,9 +8,7 @@ import (
 var Logger *zap.Logger
 
 func InitLogger() error {
-	var config zap.Config
-
-	config = zap.NewDevelopmentConfig()
+	config := zap.NewDevelopmentConfig()
 	config.EncoderConfig.EncodeLevel = zapcore.CapitalColorLevelEncoder
 	config.EncoderConfig.MessageKey = "message"
 	config.EncoderConfig.LevelKey = "level"

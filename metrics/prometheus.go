@@ -1,6 +1,8 @@
 package metrics
 
 import (
+	"log"
+	"net/http"
 	"strconv"
 	"time"
 
@@ -10,15 +12,16 @@ import (
 )
 
 type Metrics struct {
-	RequestCounter  *prometheus.CounterVec
-	RequestDuration *prometheus.HistogramVec
-	ActiveRequests  prometheus.Gauge
+	RequestCounter   *prometheus.CounterVec
+	RequestDuration  *prometheus.HistogramVec
+	ActiveRequests   prometheus.Gauge
+	HTTPErrorCounter *prometheus.CounterVec
 }
 
 func NewMetrics(namespace string) *Metrics {
 	constLabels := prometheus.Labels{"service": namespace}
 
-	m := &Metrics{
+	metric := &Metrics{
 		RequestCounter: promauto.NewCounterVec(
 			prometheus.CounterOpts{
 				Namespace:   namespace,
@@ -48,45 +51,61 @@ func NewMetrics(namespace string) *Metrics {
 				ConstLabels: constLabels,
 			},
 		),
+
+		HTTPErrorCounter: promauto.NewCounterVec(
+			prometheus.CounterOpts{
+				Namespace:   namespace,
+				Name:        "http_errors_total",
+				Help:        "totla number of http errors",
+				ConstLabels: constLabels,
+			},
+			[]string{"method", "path", "status"},
+		),
 	}
 
-	return m
+	return metric
 }
 
 func (m *Metrics) MetricsMiddleware() echo.MiddlewareFunc {
 	return func(next echo.HandlerFunc) echo.HandlerFunc {
 		return func(c *echo.Context) error {
-			start := time.Now()
-			m.ActiveRequests.Inc()
 
-			err := next(c)
-			duration := time.Since(start).Seconds()
+			log.Println("METRICS MIDDLEWARE HIT:", c.Path())
 
-			var status int
-			if err != nil {
-				if httpErr, ok := err.(*echo.HTTPError); ok {
-					status = httpErr.Code
-				} else {
-					status = 500
-				}
+			if c.Path() == "/metrics" {
+				return next(c)
 			}
 
-			statusStr := strconv.Itoa(status)
+			start := time.Now()
+			m.ActiveRequests.Inc()
+			defer m.ActiveRequests.Dec()
 
-			// Recording process now: adding metrics to prometheus basically
+			err := next(c)
+
+			statusStr := c.Request().Response.Status
+			status, err := strconv.Atoi(statusStr)
+			if status == 0 {
+				status = http.StatusOK
+			}
+
+			method := c.Request().Method
+			path := c.Path()
+
 			m.RequestCounter.WithLabelValues(
-				c.Request().Method,
-				c.Path(),
-				statusStr,
+				method, path, statusStr,
 			).Inc()
 
 			m.RequestDuration.WithLabelValues(
-				c.Request().Method,
-				c.Path(),
-				statusStr,
-			).Observe(duration)
+				method, path, statusStr,
+			).Observe(time.Since(start).Seconds())
 
-			m.ActiveRequests.Dec()
+			log.Println("Status HIT:", statusStr)
+			if status >= 400 {
+				m.HTTPErrorCounter.WithLabelValues(
+					method, path, statusStr,
+				).Inc()
+			}
+
 			return err
 		}
 	}

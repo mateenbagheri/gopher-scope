@@ -23,7 +23,7 @@ func newServer(
 }
 
 func startServer(e *echo.Echo, logger *zap.Logger) {
-	const port = ":1323"
+	const port = ":8080"
 
 	logger.Info("starting server", zap.String("port", port))
 
