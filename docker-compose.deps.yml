@@ -1,26 +1,19 @@
 services:
-  app:
-    build:
-      context: .
-      dockerfile: Dockerfile
-    ports: 
-      - "8080:8080"
-      - "2345:2345"
-    volumes:
-      - ./:/app
-      - go-mod-cache:/go/pkg/mod
-    environment:
-      GO_ENV: development
   prometheus:
     image: prom/prometheus:v3.9.1
+    container_name: gopher_scope_monitoring_prometheus
     volumes:
       - prometheus_data:/prometheus
       - ./prometheus.yml:/etc/prometheus/prometheus.yml
     ports:
       - 9090:9090
     restart: unless-stopped
+    networks:
+      - monitoring-network
+
   grafana:
     image: grafana/grafana:latest
+    container_name: gopher_scope_monitoring_grafana
     depends_on:
       - prometheus
     ports:
@@ -32,9 +25,14 @@ services:
       - GF_SECURITY_ADMIN_PASSWORD=admin
       - GF_USERS_ALLOW_SIGN_UP=false
     restart: unless-stopped
+    networks:
+      - monitoring-network
 
 volumes:
-  go-mod-cache:
   prometheus_data:
   grafana_data:
 
+networks:
+  monitoring-network:
+    driver: bridge
+    name: monitoring-network

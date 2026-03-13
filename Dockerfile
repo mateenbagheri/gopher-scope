@@ -2,7 +2,11 @@ FROM golang:1.25.4-alpine
 
 RUN apk add --no-cache git build-base
 
-RUN go install github.com/air-verse/air@latest
+RUN go install github.com/air-verse/air@latest \
+ && go install github.com/go-delve/delve/cmd/dlv@latest
+
+# Add to PATH
+ENV PATH="/go/bin:${PATH}"
 
 WORKDIR /app
 
@@ -12,3 +16,5 @@ RUN go mod download
 COPY . .
 
 EXPOSE 8080 2345
+
+CMD ["air", "-c", "air.toml", "-d"]
