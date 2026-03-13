@@ -1,20 +1,55 @@
-.PHONY: build up down logs clean downv
+.PHONY: build up deps run debug app down down-app down-deps down-deps-v down-all down-all-v logs clean
 
-# Development
+# Build app image
 build:
-	docker compose -f docker-compose.yml build
+	docker compose -f docker-compose.app.yml build
 
-up:
-	docker compose -f docker-compose.yml up
+# Start everything in RUN mode (default)
+up: deps run
 
-down:
-	docker compose -f docker-compose.yml down
+# Start dependencies only
+deps:
+	docker compose -f docker-compose.deps.yml up -d
 
-downv:
-	docker compose -f docker-compose.yml down -v
-# Common
+# ---- APP MODES ----
+# Normal development (no debugger)
+run:
+	docker compose -f docker-compose.app.yml --profile run up
+
+# Debug mode (Delve + Air)
+debug:
+	docker compose -f docker-compose.app.yml --profile debug up
+
+
+# ---- STOP COMMANDS ----
+down-app:
+	docker compose -f docker-compose.app.yml down
+	@echo "✅ app stopped"
+
+down-deps:
+	docker compose -f docker-compose.deps.yml down
+	@echo "✅ dependencies stopped"
+
+down-deps-v:
+	docker compose -f docker-compose.deps.yml down -v
+	@echo "✅ dependencies stopped and volumes deleted"
+
+down-all:
+	docker compose -f docker-compose.deps.yml -f docker-compose.app.yml down
+	@echo "✅ all services stopped"
+
+# Stop everything and delete ALL volumes
+down-all-v:
+	docker compose -f docker-compose.deps.yml -f docker-compose.app.yml down -v
+	@echo "✅ all services stopped and all volumes deleted"
+
+down: down-all
+
+# ---- LOGS ----
 logs:
-	docker compose logs -f
+	docker compose -f docker-compose.deps.yml -f docker-compose.app.yml logs -f
 
+# ---- CLEAN ----
 clean:
-	docker compose down -v --rmi all --remove-orphans
+	docker compose -f docker-compose.deps.yml -f docker-compose.app.yml down -v --rmi all --remove-orphans
+	@echo "✅ everything cleaned (containers, volumes, images, orphans)"
