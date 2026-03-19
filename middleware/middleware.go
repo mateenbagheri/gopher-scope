@@ -9,13 +9,15 @@ import (
 	"go.uber.org/zap/zapcore"
 )
 
-func RequestIDMiddleware() echo.MiddlewareFunc {
+func RequestInfoFillerMiddleware() echo.MiddlewareFunc {
 	return func(next echo.HandlerFunc) echo.HandlerFunc {
 		return func(c *echo.Context) error {
 			reqID := generateRequestID()
 			c.Set("request_id", reqID)
 			c.Response().Header().Set("X-Request-ID", reqID)
-			return next(c)
+			err := next(c)
+
+			return err
 		}
 	}
 }
@@ -42,14 +44,9 @@ func StructuredLoggingMiddleware(logger *zap.Logger) echo.MiddlewareFunc {
 			err := next(c)
 			duration := time.Since(start)
 
+			resp, err := echo.UnwrapResponse(c.Response())
 			var status int
-			if err != nil {
-				if httpErr, ok := err.(*echo.HTTPError); ok {
-					status = httpErr.Code
-				} else {
-					status = 500
-				}
-			}
+			status = resp.Status
 
 			logFields := []zapcore.Field{
 				zap.Int("status", status),
