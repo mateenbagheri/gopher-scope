@@ -1,7 +1,6 @@
 package metrics
 
 import (
-	"log"
 	"net/http"
 	"strconv"
 	"time"
@@ -69,9 +68,6 @@ func NewMetrics(namespace string) *Metrics {
 func (m *Metrics) MetricsMiddleware() echo.MiddlewareFunc {
 	return func(next echo.HandlerFunc) echo.HandlerFunc {
 		return func(c *echo.Context) error {
-
-			log.Println("METRICS MIDDLEWARE HIT:", c.Path())
-
 			if c.Path() == "/metrics" {
 				return next(c)
 			}
@@ -81,9 +77,9 @@ func (m *Metrics) MetricsMiddleware() echo.MiddlewareFunc {
 			defer m.ActiveRequests.Dec()
 
 			err := next(c)
+			resp, err := echo.UnwrapResponse(c.Response())
 
-			statusStr := c.Request().Response.Status
-			status, err := strconv.Atoi(statusStr)
+			status := resp.Status
 			if status == 0 {
 				status = http.StatusOK
 			}
@@ -91,6 +87,7 @@ func (m *Metrics) MetricsMiddleware() echo.MiddlewareFunc {
 			method := c.Request().Method
 			path := c.Path()
 
+			statusStr := strconv.Itoa(status)
 			m.RequestCounter.WithLabelValues(
 				method, path, statusStr,
 			).Inc()
@@ -99,7 +96,6 @@ func (m *Metrics) MetricsMiddleware() echo.MiddlewareFunc {
 				method, path, statusStr,
 			).Observe(time.Since(start).Seconds())
 
-			log.Println("Status HIT:", statusStr)
 			if status >= 400 {
 				m.HTTPErrorCounter.WithLabelValues(
 					method, path, statusStr,

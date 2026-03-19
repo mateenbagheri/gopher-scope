@@ -15,7 +15,7 @@ func RegisterMiddleware(
 	metrics *metrics.Metrics,
 ) {
 	e.Use(middleware.Recover())
-	e.Use(custom.RequestIDMiddleware())
+	e.Use(custom.RequestInfoFillerMiddleware())
 	e.Use(custom.StructuredLoggingMiddleware(logger))
 	e.Use(metrics.MetricsMiddleware())
 }
